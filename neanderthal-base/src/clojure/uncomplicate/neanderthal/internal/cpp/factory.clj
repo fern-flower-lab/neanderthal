@@ -17,7 +17,7 @@
             [uncomplicate.neanderthal
              [core :refer [dim entry mrows ncols matrix-type cols rows] :as core]
              [real :as real]
-             [block :refer [stride contiguous?]]]
+             [block :refer [stride contiguous? column?]]]
             [uncomplicate.neanderthal.internal
              [constants :refer :all]
              [api :refer :all]
@@ -235,16 +235,24 @@
             (int (if no-trans# ~(blas-transpose :no-trans) ~(blas-transpose :trans)))
             (if no-trans# (.sd stor-b#) (.fd stor-b#)) (if no-trans# (.fd stor-b#) (.sd stor-b#))
             1.0 (~ptr ~a 0) (stride ~a) (~ptr ~b 0) (.ld stor-b#))))
-    `(if (or (and (.isGapless (storage ~a)) (= 0 (rem (dim ~a)) ~chunk))
-             (and (= 0 (rem (mrows ~a) ~chunk)) (= 0 (rem (ncols ~a) ~chunk))))
-       (let [stor-b# (full-storage ~b)
-             no-trans# (= (navigator ~a) (navigator ~b))]
-         (. ~blas ~method ~(int (blas-layout :column))
-            (int (if no-trans# ~(blas-transpose :no-trans) ~(blas-transpose :trans)))
-            (quot (if no-trans# (.sd stor-b#) (.fd stor-b#)) ~chunk)
-            (quot (if no-trans# (.fd stor-b#) (.sd stor-b#)) ~chunk)
-            1.0 (~ptr ~a 0) (quot (stride ~a) ~chunk) (~ptr ~b 0) (quot (.ld stor-b#) ~chunk)))
-       (dragan-says-ex SHORT_UNSUPPORTED_MSG {:mrows (mrows ~a) :ncols (ncols ~a)}))))
+    `(let [stor-a# (full-storage ~a)
+           stor-b# (full-storage ~b)
+           no-trans# (= (navigator ~a) (navigator ~b))]
+       (if no-trans#
+         (cond (and (.isGapless (storage ~a)) (.isGapless stor-b#)
+                    (= 0 (rem (dim ~a) ~chunk) (rem (dim ~b) ~chunk)))
+               (let [ld# (quot (dim ~a) ~chunk)]
+                 (. ~blas ~method ~(int (blas-layout :column)) ~(blas-transpose :no-trans)
+                    ld# 1 1.0 (~ptr ~a 0) ld# (~ptr ~b 0) ld#))
+               (= 0 (rem (.sd stor-a#) ~chunk) (rem (.sd stor-b#) ~chunk)
+                  (rem (.ld stor-a#) ~chunk) (rem (.ld stor-b#) ~chunk))
+               (. ~blas ~method ~(int (blas-layout :column))
+                  (int (if no-trans# ~(blas-transpose :no-trans) ~(blas-transpose :trans)))
+                  (if no-trans# (quot (.sd stor-b#) ~chunk) (quot (.fd stor-b#) ~chunk))
+                  (if no-trans# (.fd stor-b#) (.sd stor-b#))
+                  1.0 (~ptr ~a 0) (quot (.ld stor-a#) ~chunk) (~ptr ~b 0) (quot (.ld stor-b#) ~chunk))
+               :default (dragan-says-ex SHORT_UNSUPPORTED_MSG {:mrows (mrows ~a) :ncols (ncols ~a)}))
+         (dragan-says-ex SHORT_UNSUPPORTED_MSG {:mrows (mrows ~a) :ncols (ncols ~a)})))))
 
 (defmacro integer-ge-blas* [name t ptr blas openblas chunk]
   `(extend-type ~name
@@ -284,6 +292,27 @@
         (throw (UnsupportedOperationException. INTEGER_UNSUPPORTED_MSG)))
        ([_# alpha# a# b# beta# c# _#]
         (throw (UnsupportedOperationException. INTEGER_UNSUPPORTED_MSG))))))
+
+(defmacro integer-ge-blas-plus* [name]
+  `(extend-type ~name
+     BlasPlus
+     (amax [_# a#]
+       (if (contiguous? a#)
+         (core/amax (view-vctr a#))
+         (if-let [s# (seq (if (column? a#) (cols a#) (rows a#)))]
+           (apply max (map core/amax s#))
+           0)))
+     (sum [_# a#]
+       (throw (UnsupportedOperationException. INTEGER_UNSUPPORTED_MSG)))
+     (set-all [_# alpha# a#]
+       (throw (UnsupportedOperationException. INTEGER_UNSUPPORTED_MSG));;TODO
+       a#)
+     (axpby [_# alpha# a# beta# b#]
+       (throw (UnsupportedOperationException. INTEGER_UNSUPPORTED_MSG))
+       b#)
+     (trans [_# a#]
+       (throw (UnsupportedOperationException. INTEGER_UNSUPPORTED_MSG))
+       a#)))
 
 ;; ================= Real GE Engine ========================================
 

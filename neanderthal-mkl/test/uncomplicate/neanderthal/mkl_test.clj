@@ -14,6 +14,7 @@
              [native :refer [factory-by-type]]
              [block-test :as block-test]
              [real-test :as real-test]
+             [integer-test :as integer-test]
              [math-test :as math-test]
              [random-test :as random-test]
              [sparse-test :as sparse-test]]
@@ -52,14 +53,14 @@
 (real-test/test-blas mkl-float)
 (real-test/test-blas-host mkl-double)
 (real-test/test-blas-host mkl-float)
-(real-test/test-basic-integer mkl-long)
-(real-test/test-basic-integer mkl-int)
-(real-test/test-basic-integer mkl-short)
-(real-test/test-basic-integer mkl-byte)
-(real-test/test-basic-integer-host mkl-long)
-(real-test/test-basic-integer-host mkl-int)
-(real-test/test-basic-integer-host mkl-short)
-(real-test/test-basic-integer-host mkl-byte)
+(integer-test/test-basic-integer mkl-long)
+(integer-test/test-basic-integer mkl-int)
+(integer-test/test-basic-integer mkl-short)
+(integer-test/test-basic-integer mkl-byte)
+(integer-test/test-basic-integer-host mkl-long)
+(integer-test/test-basic-integer-host mkl-int)
+(integer-test/test-basic-integer-host mkl-short)
+(integer-test/test-basic-integer-host mkl-byte)
 
 (real-test/test-blas-sy-host mkl-double)
 (real-test/test-blas-sy-host mkl-float)

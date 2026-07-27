@@ -377,15 +377,23 @@
          (. ~blas ~method ~(byte (int \C)) (byte (int (if no-trans# \N \T)))
             (if no-trans# (.sd stor-b#) (.fd stor-b#)) (if no-trans# (.fd stor-b#) (.sd stor-b#))
             1.0 (~ptr ~a 0) (stride ~a) (~ptr ~b 0) (.ld stor-b#))))
-    `(if (or (and (.isGapless (storage ~a)) (= 0 (rem (dim ~a)) ~chunk))
-             (and (= 0 (rem (mrows ~a) ~chunk)) (= 0 (rem (ncols ~a) ~chunk))))
-       (let [stor-b# (full-storage ~b)
-             no-trans# (= (navigator ~a) (navigator ~b))]
-         (. ~blas ~method ~(byte (int \C)) (byte (int (if no-trans# \N \T)))
-            (quot (if no-trans# (.sd stor-b#) (.fd stor-b#)) ~chunk)
-            (quot (if no-trans# (.fd stor-b#) (.sd stor-b#)) ~chunk)
-            1.0 (~ptr ~a 0) (quot (stride ~a) ~chunk) (~ptr ~b 0) (quot (.ld stor-b#) ~chunk)))
-       (dragan-says-ex SHORT_UNSUPPORTED_MSG {:mrows (mrows ~a) :ncols (ncols ~a)}))))
+    `(let [stor-a# (full-storage ~a)
+           stor-b# (full-storage ~b)
+           no-trans# (= (navigator ~a) (navigator ~b))]
+       (if no-trans#
+         (cond (and (.isGapless (storage ~a)) (.isGapless stor-b#)
+                    (= 0 (rem (dim ~a) ~chunk) (rem (dim ~b) ~chunk)))
+               (let [ld# (quot (dim ~a) ~chunk)]
+                 (. ~blas ~method ~(byte (int \C)) (byte (int \N))
+                    ld# 1 1.0 (~ptr ~a 0) ld# (~ptr ~b 0) ld#))
+               (= 0 (rem (.sd stor-a#) ~chunk) (rem (.sd stor-b#) ~chunk)
+                  (rem (.ld stor-a#) ~chunk) (rem (.ld stor-b#) ~chunk))
+               (. ~blas ~method ~(byte (int \C)) (byte (int (if no-trans# \N \T)))
+                  (if no-trans# (quot (.sd stor-b#) ~chunk) (quot (.fd stor-b#) ~chunk))
+                  (if no-trans# (.fd stor-b#) (.sd stor-b#))
+                  1.0 (~ptr ~a 0) (quot (.ld stor-a#) ~chunk) (~ptr ~b 0) (quot (.ld stor-b#) ~chunk))
+               :default (dragan-says-ex SHORT_UNSUPPORTED_MSG {:mrows (mrows ~a) :ncols (ncols ~a)}))
+         (dragan-says-ex SHORT_UNSUPPORTED_MSG {:mrows (mrows ~a) :ncols (ncols ~a)})))))
 
 (defmacro mkl-integer-ge-blas* [name t ptr blas chunk]
   `(extend-type ~name
@@ -702,16 +710,25 @@
 (real-matrix-math* DoubleGEEngine "d" double-ptr double zero-double)
 (mkl-real-ge-rng* DoubleGEEngine "d" double-ptr double)
 
-;;TODO
+(deftype HalfGEEngine [])
+(mkl-integer-ge-blas* HalfGEEngine "s" float-ptr mkl_rt 2)
+(integer-ge-blas-plus* HalfGEEngine)
+
 (deftype LongGEEngine [])
 (mkl-integer-ge-blas* LongGEEngine "d" double-ptr mkl_rt 1)
+(integer-ge-blas-plus* LongGEEngine)
 
 (deftype IntGEEngine [])
 (mkl-integer-ge-blas* IntGEEngine "s" float-ptr mkl_rt 1)
+(integer-ge-blas-plus* IntGEEngine)
 
-(deftype ShortGEEngine []) ;; TODO
+(deftype ShortGEEngine [])
+(mkl-integer-ge-blas* ShortGEEngine "s" float-ptr mkl_rt 2)
+(integer-ge-blas-plus* ShortGEEngine)
 
-(deftype ByteGEEngine []) ;; TODO
+(deftype ByteGEEngine [])
+(mkl-integer-ge-blas* ByteGEEngine "s" float-ptr mkl_rt 4)
+(integer-ge-blas-plus* ByteGEEngine)
 
 ;; ========================= TR matrix engines ===============================================
 
@@ -1777,7 +1794,7 @@
                                   (->DoubleCSVectorEngine)  (->DoubleCSREngine)))
 
 (def mkl-half (->MKLRealFactory mkl-int mkl-half-accessor
-                                (->HalfVectorEngine) (->ShortGEEngine)
+                                (->HalfVectorEngine) (->HalfGEEngine)
                                 (->ShortTREngine) (->ShortSYEngine)
                                 (->ShortGBEngine) (->ShortSBEngine) (->ShortTBEngine)
                                 (->ShortSPEngine) (->ShortTPEngine) (->ShortGDEngine)

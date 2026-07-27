@@ -811,16 +811,25 @@
 (real-matrix-math* DoubleGEEngine "d" "" "D" double-ptr cpp/double-ptr double zero-double)
 (real-ge-rng* DoubleGEEngine "d" double-ptr double blas_new openblas_full "catlas_daxpby" ones-double)
 
-;;TODO
+(deftype HalfGEEngine [])
+(integer-ge-blas* HalfGEEngine "s" float-ptr openblas_full openblas_full 2)
+(integer-ge-blas-plus* HalfGEEngine)
+
 (deftype LongGEEngine [])
-(integer-ge-blas* LongGEEngine "d" double-ptr blas_new openblas_full 1)
+(integer-ge-blas* LongGEEngine "d" double-ptr openblas_full openblas_full 1)
+(integer-ge-blas-plus* LongGEEngine)
 
 (deftype IntGEEngine [])
-(integer-ge-blas* IntGEEngine "s" float-ptr blas_new openblas_full 1)
+(integer-ge-blas* IntGEEngine "s" float-ptr openblas_full openblas_full 1)
+(integer-ge-blas-plus* IntGEEngine)
 
-(deftype ShortGEEngine []) ;; TODO
+(deftype ShortGEEngine [])
+(integer-ge-blas* ShortGEEngine "s" float-ptr openblas_full openblas_full 2)
+(integer-ge-blas-plus* ShortGEEngine)
 
-(deftype ByteGEEngine []) ;; TODO
+(deftype ByteGEEngine [])
+(integer-ge-blas* ByteGEEngine "s" float-ptr openblas_full openblas_full 4)
+(integer-ge-blas-plus* ByteGEEngine)
 
 ;; ========================= TR matrix engines ===============================================
 
@@ -1191,7 +1200,7 @@
 
 (def accelerate-half (->BlasRealFactory
                       accelerate-int half-accessor
-                      (->HalfVectorEngine) (->ShortGEEngine)
+                      (->HalfVectorEngine) (->HalfGEEngine)
                       (->ShortTREngine) (->ShortSYEngine) (->ShortGBEngine)
                       (->ShortSBEngine) (->ShortTBEngine) (->ShortSPEngine)
                       (->ShortTPEngine) (->ShortGDEngine) (->ShortGTEngine)

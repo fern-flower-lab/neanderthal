@@ -143,27 +143,6 @@
          (entry (alter! (vctr factory [1 2 3]) 1 val+) 1) => 3.0
          (alter! (vctr factory [1 2 3]) val-ind+) => (vctr factory [1 3 5])))
 
-(defn test-vctr-integer-entry [factory]
-  (facts "Vector entry."
-         (entry (vctr factory [1 2 3 4]) 1) => 2
-         (entry (vctr factory []) 0) => (throws ExceptionInfo)))
-
-(defn test-vctr-integer-entry! [factory]
-  (facts "Vector entry!."
-         (entry (entry! (vctr factory [1 2 3 4]) 1 77) 1) => 77))
-
-(defn test-vctr-integer-bulk-entry! [factory]
-  (facts "Vector entry!."
-         (sum (entry! (vctr factory [1 2 3]) 77)) => 231))
-
-(defn test-vctr-integer-alter! [factory]
-  (facts "Vector alter!."
-         (entry (alter! (vctr factory [1 2 3 4]) 1
-                        (fn ^long [^long val] (inc val))) 1) => 3
-         (alter! (vctr factory [1 2 3 4])
-                 (fn ^long [^long i ^long val] (long (+ i val)))) => (vctr factory [1 3 5 7])))
-
-
 ;;================ BLAS functions =========================================
 
 (defn test-vctr-dot [factory]
@@ -180,12 +159,13 @@
          (sum (vctr factory [])) => 0.0))
 
 (defn test-sum-asum [factory]
-  (with-release [x (vctr factory (range 1 100 0.001))
-                 y (vctr factory [1 2 4 9])
-                 z (entry! (vctr factory 1000000) 1.0)]
-    (sum x) => (asum x)
-    (sum y) => (asum y)
-    (sum x) => (asum x)))
+  (facts "Blas 1 asum."
+         (with-release [x (vctr factory (range 1 100 0.001))
+                        y (vctr factory [1 2 4 9])
+                        z (entry! (vctr factory 1000000) 1.0)]
+           (float (sum x)) => (float (asum x))
+           (sum y) => (asum y)
+           (sum z) => (asum z))))
 
 (defn test-iamax [factory]
   (facts "BLAS 1 iamax"
@@ -495,20 +475,24 @@
 
 (defn test-ge-copy [factory]
   (facts "BLAS 1 copy! GE matrix"
-         (with-release [a (ge factory 2 3 (range 6))
-                        b (ge factory 2 3 (range 7 13))
-                        b-row (ge factory 2 3 {:layout :row})]
+         (with-release [a (ge factory 2 4 (range 8))
+                        b (ge factory 2 4 (range 9 16))]
            (identical? (copy! a b) b) => true
-           (copy! a b) => (ge factory 2 3 (range 6))
-           (copy (ge factory 2 3 (range 6))) => a
-           (copy! a b-row) => a)
+           (copy! a b) => (ge factory 2 4 (range 8))
+           (copy (ge factory 2 4 (range 8))) => a)
 
-         (copy! (ge factory 2 3 [10 20 30 40 50 60]) (ge factory 2 3 [1 2 3 4 5 6]))
-         => (ge factory 2 3 [10 20 30 40 50 60])
+         (copy! (ge factory 2 4 [10 20 30 40 50 60 70 80]) (ge factory 2 4 [1 2 3 4 5 6 7 8]))
+         => (ge factory 2 4 [10 20 30 40 50 60 70 80])
 
-         (copy! (ge factory 2 3 [1 2 3 4 5 6]) nil) => (throws ExceptionInfo)
+         (copy! (ge factory 2 4 [1 2 3 4 5 6 7 8]) nil) => (throws ExceptionInfo)
 
-         (copy! (ge factory 2 3 [10 20 30 40 50 60]) (ge factory 2 2)) => (throws ExceptionInfo)))
+         (copy! (ge factory 2 4 [10 20 30 40 50 60 70 80]) (ge factory 2 2)) => (throws ExceptionInfo)))
+
+(defn test-ge-trans-copy [factory]
+  (facts "BLAS 1 copy! GE matrix"
+         (with-release [a (ge factory 2 4 (range 8))
+                        b-row (ge factory 2 4 {:layout :row})]
+           (copy! a b-row) => a)))
 
 (defn test-ge-swap [factory]
   (facts
@@ -2925,6 +2909,7 @@
   (test-ge-bulk-entry! factory)
   (test-ge-swap factory)
   (test-ge-copy factory)
+  (test-ge-trans-copy factory)
   (test-ge-scal factory)
   (test-ge-axpy factory)
   (test-ge-asum factory)
@@ -2983,15 +2968,6 @@
   (test-tr-sum factory tr)
   (test-tr-amax factory tr)
   (test-sy-rk factory sp))
-
-(defn test-basic-integer [factory]
-  (test-vctr-swap factory)
-  (test-vctr-copy factory))
-
-(defn test-basic-integer-host [factory]
-  (test-vctr-integer-entry factory)
-  (test-vctr-integer-entry! factory)
-  (test-vctr-integer-alter! factory))
 
 (defn test-lapack [factory]
   (test-vctr-srt factory)

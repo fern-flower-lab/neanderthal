@@ -31,25 +31,25 @@
 (defmacro vector-iopt [opt x entry]
   `(let [cnt# (dim ~x)]
      (if (< 0 cnt#)
-       (loop [i# 1 max-idx# 0 opt-val# (~entry ~x 0)]
+       (loop [i# 1 opt-idx# 0 opt-val# (~entry ~x 0)]
          (if (< i# cnt#)
            (let [v# (~entry ~x i#)]
              (if (~opt opt-val# v#)
                (recur (inc i#) i# v#)
-               (recur (inc i#) max-idx# opt-val#)))
-           max-idx#))
+               (recur (inc i#) opt-idx# opt-val#)))
+           opt-idx#))
        0)))
 
 (defmacro vector-iaopt [opt x entry]
   `(let [cnt# (dim ~x)]
      (if (< 0 cnt#)
-       (loop [i# 1 max-idx# 0 opt-val# (Math/abs (~entry ~x 0))]
+       (loop [i# 1 opt-idx# 0 opt-val# (Math/abs (~entry ~x 0))]
          (if (< i# cnt#)
            (let [v# (Math/abs (~entry ~x i#))]
              (if (~opt opt-val# v#)
                (recur (inc i#) i# v#)
-               (recur (inc i#) max-idx# opt-val#)))
-           max-idx#))
+               (recur (inc i#) opt-idx# opt-val#)))
+           opt-idx#))
        0)))
 
 (defmacro full-storage-reduce [a b len buff-a buff-b ld-b acc init expr-direct expr]
@@ -229,6 +229,8 @@
           (accu-layout ~a len# idx# acc# 0.0
                        (+ acc# (double (. ~blas ~method len# (.position buff-a# idx#) 1 ones# 0))))))
       0.0)))
+
+
 
 ;;TODO there's saxpy_batch_strided in new MKL. Explore whether that can simplify our code.
 (defmacro matrix-axpy [blas method ptr alpha a b]

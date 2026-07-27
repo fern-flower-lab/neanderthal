@@ -14,6 +14,7 @@
              [native :refer [factory-by-type]]
              [block-test :as block-test]
              [real-test :as real-test]
+             [integer-test :as integer-test]
              [math-test :as math-test]
              [random-test :as random-test]]
             [uncomplicate.neanderthal.internal.cpp.openblas.factory
@@ -52,14 +53,14 @@
 (real-test/test-blas openblas-float)
 (real-test/test-blas-host openblas-double)
 (real-test/test-blas-host openblas-float)
-(real-test/test-basic-integer openblas-long)
-(real-test/test-basic-integer openblas-int)
-(real-test/test-basic-integer openblas-short)
-(real-test/test-basic-integer openblas-byte)
-(real-test/test-basic-integer-host openblas-long)
-(real-test/test-basic-integer-host openblas-int)
-(real-test/test-basic-integer-host openblas-short)
-(real-test/test-basic-integer-host openblas-byte)
+(integer-test/test-basic-integer openblas-long)
+(integer-test/test-basic-integer openblas-int)
+(integer-test/test-basic-integer openblas-short)
+(integer-test/test-basic-integer openblas-byte)
+(integer-test/test-basic-integer-host openblas-long)
+(integer-test/test-basic-integer-host openblas-int)
+(integer-test/test-basic-integer-host openblas-short)
+(integer-test/test-basic-integer-host openblas-byte)
 (real-test/test-blas-sy-host openblas-double)
 (real-test/test-blas-sy-host openblas-float)
 
