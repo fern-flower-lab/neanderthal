@@ -17,6 +17,7 @@
                            cuda-double cuda-long cuda-int cuda-short cuda-byte]]
              [block-test :as block-test]
              [real-test :as real-test]
+             [integer-test :as integer-test]
              [device-test :as device-test]
              [math-test :as math-test]
              [random-test :as random-test]])
@@ -142,7 +143,6 @@
     (test-cuda-transfer-overwriting *cuda-factory* float)
     (test-cuda-transfer-stride *cuda-factory* float)
     (test-cuda-ge-transfer *cuda-factory* float)
-    (real-test/test-basic-integer *cuda-factory*)
     (test-blas-integer *cuda-factory*))
 
   (with-engine cuda-long default-stream
@@ -150,7 +150,7 @@
     (test-cuda-transfer-overwriting *cuda-factory* long)
     (test-cuda-transfer-stride *cuda-factory* long)
     (test-cuda-ge-transfer *cuda-factory* long)
-    (real-test/test-basic-integer *cuda-factory*)
+    (integer-test/test-basic-integer *cuda-factory*)
     (test-blas-integer *cuda-factory*))
 
   (with-engine cuda-int default-stream
@@ -158,7 +158,7 @@
     (test-cuda-transfer-overwriting *cuda-factory* int)
     (test-cuda-transfer-stride *cuda-factory* int)
     (test-cuda-ge-transfer *cuda-factory* int)
-    (real-test/test-basic-integer *cuda-factory*)
+    (integer-test/test-basic-integer *cuda-factory*)
     (test-blas-integer *cuda-factory*))
 
   (with-engine cuda-short default-stream
@@ -166,7 +166,7 @@
     (test-cuda-transfer-overwriting *cuda-factory* short)
     (test-cuda-transfer-stride *cuda-factory* short)
     (test-cuda-ge-transfer *cuda-factory* short)
-    (real-test/test-basic-integer *cuda-factory*)
+    (integer-test/test-basic-integer *cuda-factory*)
     (test-blas-integer *cuda-factory*))
 
   (with-engine cuda-byte default-stream
@@ -174,5 +174,5 @@
     (test-cuda-transfer-overwriting *cuda-factory* byte)
     (test-cuda-transfer-stride *cuda-factory* byte)
     (test-cuda-ge-transfer *cuda-factory* byte)
-    (real-test/test-basic-integer *cuda-factory*)
+    (integer-test/test-basic-integer *cuda-factory*)
     (test-blas-integer *cuda-factory*)))

@@ -44,18 +44,18 @@
 
 (defn test-ge-amax [factory]
   (facts "BLAS 1 GE amax."
-         (amax (ge factory 2 3 [1 2 3 -7 -3 1])) => 7
+         (amax (ge factory 2 4 [1 2 3 -7 -3 1 3 0])) => 7
          (amax (ge factory 0 0 [])) => 0))
 
 (defn test-basic-integer [factory]
   (test-group factory)
   (test-vctr-swap factory)
-  (test-vctr-copy factory)
-  (test-vctr-amax factory)
-  (test-ge-amax factory)
-  (test-ge-copy factory))
+  (test-vctr-copy factory))
 
 (defn test-basic-integer-host [factory]
   (test-vctr-integer-entry factory)
   (test-vctr-integer-entry! factory)
-  (test-vctr-integer-alter! factory))
+  (test-vctr-integer-alter! factory)
+  (test-vctr-amax factory)
+  (test-ge-copy factory)
+  (test-ge-amax factory))

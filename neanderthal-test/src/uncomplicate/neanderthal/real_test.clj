@@ -26,10 +26,10 @@
 
 (defn test-group [factory]
   (facts "Group methods."
-         (with-release [x (vctr factory [1 2 3])
-                        y (vctr factory [2 3 4])]
+         (with-release [x (vctr factory [1 2 3 4])
+                        y (vctr factory [2 3 4 6])]
 
-           (zero x) => (vctr factory [0 0 0])
+           (zero x) => (vctr factory [0 0 0 0])
            (identical? x (zero x)) => false)
 
          (with-release [a (ge factory 2 3 [1 2 3 4 5 6])
